@@ -357,7 +357,7 @@
 % not capitalized unless they are the first or last word of the title.
 % Linebreaks \\ can be used within to get better formatting as desired.
 % Do not put math or special symbols in the title.
-\title{Bare Demo of IEEEtran.cls\\ for IEEE Journals}
+\title{The Six Most-Cited Semantic Segmentation Models:\\ A Review of Applied Techniques and\\ Author-Reported Results}
 %
 %
 % author names and IEEE memberships
@@ -369,19 +369,14 @@
 % was not built to handle multiple paragraphs
 %
 
-\author{Michael~Shell,~\IEEEmembership{Member,~IEEE,}
-        John~Doe,~\IEEEmembership{Fellow,~OSA,}
-        and~Jane~Doe,~\IEEEmembership{Life~Fellow,~IEEE}% <-this % stops a space
-\thanks{M. Shell was with the Department
-of Electrical and Computer Engineering, Georgia Institute of Technology, Atlanta,
-GA, 30332 USA e-mail: (see http://www.michaelshell.org/contact.html).}% <-this % stops a space
-\thanks{J. Doe and J. Doe are with Anonymous University.}% <-this % stops a space
-\thanks{Manuscript received April 19, 2005; revised August 26, 2015.}}
+\author{Oscar~A.~Mart\'{i}nez~S.% <-this % stops a space
+\thanks{Author affiliation goes here. E-mail contact to be completed by the author.}% <-this % stops a space
+\thanks{Manuscript prepared October 15, 2026.}}
 
-% note the % following the last \IEEEmembership and also \thanks - 
+% note the % following the last \IEEEmembership and also \thanks -
 % these prevent an unwanted space from occurring between the last author name
 % and the end of the author line. i.e., if you had this:
-% 
+%
 % \author{....lastname \thanks{...} \thanks{...} }
 %                     ^------------^------------^----Do not want these spaces!
 %
@@ -400,10 +395,10 @@ GA, 30332 USA e-mail: (see http://www.michaelshell.org/contact.html).}% <-this %
 
 % The paper headers
 \markboth{Journal of \LaTeX\ Class Files,~Vol.~14, No.~8, August~2015}%
-{Shell \MakeLowercase{\textit{et al.}}: Bare Demo of IEEEtran.cls for IEEE Journals}
+{Mart\'{i}nez: The Six Most-Cited Semantic Segmentation Models}
 % The only time the second header will appear is for the odd numbered pages
 % after the title page when using the twoside option.
-% 
+%
 % *** Note that you probably will NOT want to include the author's ***
 % *** name in the headers of peer review papers.                   ***
 % You can use \ifCLASSOPTIONpeerreview for conditional compilation here if
@@ -432,12 +427,33 @@ GA, 30332 USA e-mail: (see http://www.michaelshell.org/contact.html).}% <-this %
 % As a general rule, do not put math, special symbols or citations
 % in the abstract or keywords.
 \begin{abstract}
-The abstract goes here.
+This paper reviews the six most frequently cited models of the modern semantic
+segmentation literature: the fully convolutional network, U-Net, SegNet, DeepLab,
+the pyramid scene parsing network, and DeepLabv3+. For each model we summarise the
+techniques its authors applied and the results they reported, working from the
+primary arXiv sources rather than from secondary summaries. Two questions organise
+the review. First, what mechanism does each architecture use to reconcile the two
+competing demands of dense prediction, namely the long-range context needed to
+decide what a region is and the spatial precision needed to decide where it begins?
+We find four successive answers: learned upsampling with skip fusion, symmetric
+encoder-decoder recovery, explicit resolution control through atrous convolution and
+multi-scale context aggregation, and finally the deliberate combination of pyramid
+pooling with a decoder. Second, what do the reported numbers actually license? We
+reproduce the authors' own figures with their datasets and metrics attached, and show
+that the headline scores span different benchmarks, different backbones, different
+pre-training corpora and different inference protocols, so that the apparent
+monotone progression from 62.2 to 89.0 percent conflates architectural gain with
+data and compute. We also find that the efficiency claims are mutually
+incommensurable: three of the six papers report cost in units the others do not use
+at all. We close by identifying gaps in boundary evaluation, reporting discipline,
+annotation cost and deployment under constrained memory.
 \end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
 \begin{IEEEkeywords}
-IEEE, IEEEtran, journal, \LaTeX, paper, template.
+Semantic segmentation, scene understanding, convolutional neural networks,
+encoder-decoder architectures, atrous convolution, pyramid pooling, literature
+review.
 \end{IEEEkeywords}
 
 
@@ -460,38 +476,486 @@ IEEE, IEEEtran, journal, \LaTeX, paper, template.
 \section{Introduction}
 % The very first letter is a 2 line initial drop letter followed
 % by the rest of the first word in caps.
-% 
+%
 % form to use if the first word consists of a single letter:
 % \IEEEPARstart{A}{demo} file is ....
-% 
+%
 % form to use if you need the single drop letter followed by
 % normal text (unknown if ever used by the IEEE):
 % \IEEEPARstart{A}{}demo file is ....
-% 
+%
 % Some journals put the first two words in caps:
 % \IEEEPARstart{T}{his demo} file is ....
-% 
+%
 % Here we have the typical use of a "T" for an initial drop letter
 % and "HIS" in caps to complete the first word.
-\IEEEPARstart{T}{his} demo file is intended to serve as a ``starter file''
-for IEEE journal papers produced under \LaTeX\ using
-IEEEtran.cls version 1.8b and later.
-% You must have at least 2 lines in the paragraph with the drop letter
-% (should never be an issue)
-I wish you the best of success.
+\IEEEPARstart{S}{emantic} segmentation assigns a category label to every pixel in
+an image, producing a dense, structured description of a scene rather than a single
+image-level decision. Because the output lives at the resolution of the input, every
+segmentation model must satisfy two demands at once: it must aggregate long-range
+semantic context in order to decide \emph{what} a region is, and it must preserve
+fine spatial detail in order to decide precisely \emph{where} that region begins and
+ends. Classification backbones are built to discard exactly the information the
+second demand requires --- repeated striding and pooling reduce spatial resolution by
+a factor of 32 in each direction --- so the central design problem of the field is
+how to recover it. Almost every architectural idea reviewed here can be read as a
+particular answer to that one problem.
 
-\hfill mds
- 
-\hfill August 26, 2015
+This paper reviews the six works that the field cites most heavily, and which
+together define the problem's canonical answers. The fully convolutional network
+(FCN) of Long \emph{et al.}~\cite{long2014fully} reframed segmentation as per-pixel
+classification, showed that a classification backbone could be fine-tuned end-to-end
+from pixels to pixels, and recovered resolution by learning the upsampling and fusing
+predictions from shallower layers. U-Net~\cite{ronneberger2015unet} made the
+recovery path symmetric with the contraction path and concatenated full-resolution
+encoder features into it, an arrangement designed for the small, heavily augmented
+datasets of biomedical microscopy. SegNet~\cite{badrinarayanan2015segnet} kept the
+symmetric decoder but replaced the transferred feature maps with the max-pooling
+indices alone, trading a little accuracy for an order-of-magnitude reduction in the
+memory the decoder must hold at inference. DeepLab~\cite{chen2016deeplab} attacked
+the problem earlier in the pipeline, using atrous convolution to control the
+resolution at which features are computed in the first place, adding atrous spatial
+pyramid pooling for multi-scale context and a fully connected conditional random
+field (CRF) to sharpen boundaries. The pyramid scene parsing network
+(PSPNet)~\cite{zhao2016pspnet} diagnosed the FCN's residual failures as failures of
+global context and aggregated context over a four-level spatial pyramid.
+DeepLabv3+~\cite{chen2018encoderdecoder} closed the loop, combining the pyramid
+pooling lineage with the encoder-decoder lineage and making both cheap through atrous
+separable convolution.
 
-\subsection{Subsection Heading Here}
-Subsection text here.
+Our aim is synthesis rather than enumeration, and the review is deliberately
+two-sided. Section~\ref{sec:sota} presents the state of the art: it states the scope
+and inclusion criteria, groups the six works into thematic clusters by the mechanism
+each uses, summarises the techniques applied, reports the results the authors
+themselves obtained with the dataset and metric attached to each figure, traces the
+methodological trends that connect them, separates consensus from unresolved
+disagreement, and identifies gaps and future directions.
+Section~\ref{sec:conclusion} concludes.
 
-% needed in second column of first page if using \IEEEpubid
-%\IEEEpubidadjcol
+\section{State of the Art}
+\label{sec:sota}
 
-\subsubsection{Subsubsection Heading Here}
-Subsubsection text here.
+\subsection{Scope and Inclusion Criteria}
+
+This review covers learning-based architectures for dense semantic labelling of
+images. A work was included if it satisfied three criteria. First, it had to
+introduce a general-purpose segmentation \emph{architecture}, not an application of
+an existing one to a particular domain. Second, it had to report quantitative results
+on at least one standard public benchmark, so that its claims could be placed on a
+common axis. Third, it had to be among the most heavily cited works in the field, on
+the evidence of standard bibliometric consensus.
+
+That third criterion requires an explicit caveat, because it is the weakest link in
+the selection. Citation counts are not published by the preprint archive from which
+the primary sources were retrieved, and the citation-graph service consulted for this
+review returned a rate-limit error rather than counts. The six works listed in
+Table~\ref{tab:models} are therefore selected as the field's most-cited models on the
+basis of bibliometric consensus rather than counts re-verified for this paper, and no
+citation figures are quoted anywhere in what follows. Readers should treat the
+ranking as a reasonable identification of the canonical set, not as a measurement.
+
+Two boundaries of scope should also be stated plainly. Instance and panoptic
+segmentation are out of scope, which excludes some very heavily cited work --- Mask
+R-CNN most notably --- whose object of study is the individuated instance rather than
+the semantic region. And the evidence reviewed here is drawn entirely from
+author-reported results, which have not been independently re-run; this is a
+limitation we return to in Section~\ref{subsec:disagree}.
+
+\begin{table*}[!t]
+\renewcommand{\arraystretch}{1.3}
+\caption{The Six Reviewed Models. Results Are as Reported by the Original Authors; See Section~\ref{subsec:disagree} on Comparability.}
+\label{tab:models}
+\centering
+\begin{tabular}{|l|c|l|l|}
+\hline
+\textbf{Model} & \textbf{Year} & \textbf{Defining commitment} & \textbf{Headline result reported by authors}\\
+\hline
+FCN~\cite{long2014fully} & 2014 & Learned upsampling plus skip fusion & 62.2\% mean IU on PASCAL VOC 2012 test\\
+\hline
+U-Net~\cite{ronneberger2015unet} & 2015 & Symmetric decoder, feature concatenation & 92.03\% IoU on PhC-U373; won ISBI 2015 tracking\\
+\hline
+SegNet~\cite{badrinarayanan2015segnet} & 2015 & Upsampling from max-pooling indices & 60.10\% mIoU on CamVid at 1052\,MB inference memory\\
+\hline
+DeepLab~\cite{chen2016deeplab} & 2016 & Atrous convolution, ASPP, dense CRF & 79.7\% mIoU on PASCAL VOC 2012 test\\
+\hline
+PSPNet~\cite{zhao2016pspnet} & 2016 & Four-level pyramid pooling for global context & 85.4\% mIoU on VOC 2012 test; 80.2\% on Cityscapes\\
+\hline
+DeepLabv3+~\cite{chen2018encoderdecoder} & 2018 & Pyramid pooling plus a decoder, made separable & 89.0\% mIoU on VOC 2012 test; 82.1\% on Cityscapes\\
+\hline
+\end{tabular}
+\end{table*}
+
+\subsection{Thematic Clusters in Prior Work}
+
+The six works fall into four clusters, each defined by the mechanism it uses to
+reconcile semantic context with spatial precision.
+
+\subsubsection{Reframing Dense Prediction}
+The first cluster contains a single work, because the FCN's contribution was a
+reframing rather than a mechanism. Long \emph{et al.} observe that convolution,
+pooling and the non-linearities all operate on local regions and depend only on
+relative coordinates, so a network composed solely of such layers accepts inputs of
+arbitrary size and emits correspondingly sized outputs~\cite{long2014fully}. Fully
+connected layers are reinterpreted as convolutions whose kernels cover their entire
+input region, which converts a classification network into a dense predictor at the
+cost of a coarse output stride. Two consequences follow. The first is efficiency:
+amortising computation over overlapping receptive fields, the authors report that
+producing a $10\times10$ grid of outputs from a $500\times500$ image takes 22\,ms
+against 1.2\,ms for a single $227\times227$ classification, more than five times
+faster than the naive patchwise approach. The second is the problem the rest of the
+field inherits, since a stride of 32 pixels bounds the achievable detail.
+
+The FCN's own answer has two parts. Upsampling is performed in-network by backwards
+convolution, which is trivial to implement because it simply reverses the forward and
+backward passes of convolution, and whose filters need not be fixed to bilinear
+interpolation but can be learned. And the ``skip'' architecture fuses predictions from
+shallower, finer layers into the coarse prediction by summation, turning the linear
+topology into a directed acyclic graph. The authors are careful about why summation
+rather than maximum: max fusion made learning difficult through gradient switching.
+Each refinement stage is initialised from the coarser network with the new parameters
+zeroed so that training begins from unmodified predictions, with the learning rate cut
+by a factor of 100.
+
+\subsubsection{Symmetric Encoder--Decoder Recovery}
+The second cluster accepts the coarse-to-fine framing but makes the recovery path a
+full mirror of the contraction path. U-Net's expansive path halves the channel count
+at each step with an up-convolution, concatenates the correspondingly cropped
+encoder feature map, and applies two $3\times3$ convolutions; because the large
+channel count is retained in the upsampling half, context information propagates to
+the high-resolution layers~\cite{ronneberger2015unet}. The design is adapted
+throughout to the scarcity of biomedical annotation. Unpadded convolutions mean the
+output contains only pixels for which full context was available, which in turn
+permits seamless tiling of arbitrarily large images with mirrored extrapolation at the
+borders. Elastic deformation is the central augmentation, generated from random
+displacements on a coarse $3\times3$ grid sampled from a Gaussian with a standard
+deviation of 10 pixels and interpolated bicubically. And the loss is weighted per
+pixel by $w(x)=w_c(x)+w_0\exp(-(d_1(x)+d_2(x))^2/2\sigma^2)$ with $w_0=10$ and
+$\sigma\approx5$ pixels, where $d_1$ and $d_2$ are the distances to the nearest and
+second-nearest cell borders, so that the network is forced to learn the narrow
+separations between touching cells. Memory is spent on large input tiles rather than
+large batches, the batch reduced to a single image and compensated by a momentum of
+0.99.
+
+SegNet keeps the symmetry but attacks what the decoder has to remember. Its encoder is
+topologically identical to the 13 convolutional layers of VGG16, and discarding the
+fully connected layers reduces the encoder from 134\,M to 14.7\,M parameters. The
+novelty is in the upsampling: only the max-pooling indices are memorised, in principle
+two bits per $2\times2$ window, and the decoder scatters its input back to those
+positions and densifies the result with a trainable filter
+bank~\cite{badrinarayanan2015segnet}. Learning to upsample is thereby eliminated
+entirely. The authors quantify the saving directly against FCN-Basic: storing 64
+feature maps of the first layer at $180\times240$ in 32-bit floating point costs
+11\,MB, the dimensionality-reduced form costs about 1.9\,MB, and the pooling indices
+cost 0.17\,MB. Their ablation over decoder variants is the most systematic in the set,
+and it yields three stated rules: storing the encoder maps in full performs best,
+especially on boundary measures; compressed forms used with a suitable decoder
+recover most of that performance when inference memory is constrained; and larger
+decoders help for a given encoder.
+
+\subsubsection{Resolution Control and Multi-Scale Context}
+The third cluster intervenes before resolution is lost. DeepLab localises the last
+resolution-reducing layer, sets its stride to one, and replaces subsequent
+convolutions with atrous convolutions, $y[i]=\sum_k x[i+r\cdot k]\,w[k]$, where the
+rate $r$ sets the input sampling stride~\cite{chen2016deeplab}. Because inserting
+$r-1$ zeros between filter taps gives a $k\times k$ filter an effective size of
+$k+(k-1)(r-1)$, the field of view can be enlarged without adding parameters or
+computation. The authors adopt a hybrid: atrous convolution quadruples feature
+density to one response every 8 pixels, and fast bilinear interpolation covers the
+remaining factor of 8, since computing responses at full image resolution ``ends up
+being too costly'' and the score maps are smooth enough that interpolation suffices.
+Atrous spatial pyramid pooling (ASPP) then probes one feature layer with several
+parallel atrous branches at different rates, the explicit contrast being with the
+serial arrangement of dilated layers used elsewhere. Finally a fully connected CRF
+with a bilateral and a spatial Gaussian kernel, solved by ten mean-field iterations
+accelerated by permutohedral-lattice filtering, refines the boundaries. The CRF is a
+post-process: the authors state plainly that they decouple the two training stages and
+hold the unary terms fixed when setting the CRF parameters.
+
+PSPNet starts from an error analysis rather than an architecture. Its authors catalogue
+three failure modes of the FCN on ADE20K --- mismatched relationships, where a boat is
+labelled a car despite cars rarely appearing on rivers; confusion categories, where
+field and earth or building and skyscraper are conflated; and inconspicuous classes,
+where small objects are missed and large ones exceed the effective receptive field and
+come out discontinuous~\cite{zhao2016pspnet}. The common factor they identify is
+missing global context, and they note the empirical receptive field of a CNN is much
+smaller than its theoretical one. Their pyramid pooling module aggregates context at
+bin sizes of $1\times1$, $2\times2$, $3\times3$ and $6\times6$, applies a $1\times1$
+convolution after each level to reduce the context representation to $1/N$ of its
+dimension so that the global feature does not dominate, upsamples bilinearly and
+concatenates. The contrast with a single global average pooling vector is explicit:
+collapsing everything into one vector can lose spatial relation and introduce
+ambiguity. A second classifier after the res4b22 block of ResNet101 provides deep
+supervision with a balance weight $\alpha=0.4$, discarded at test time.
+
+\subsubsection{Convergence of the Two Lineages}
+The fourth cluster is the deliberate merger of the second and third. DeepLabv3+ frames
+the field as a choice between spatial pyramid pooling, which encodes multi-scale
+context, and encoder-decoder structures, which recover sharp boundaries, and refuses
+the choice: DeepLabv3 becomes the encoder and a simple decoder is appended
+\cite{chen2018encoderdecoder}. The decoder upsamples the encoder output by four,
+concatenates low-level backbone features whose channels have first been reduced by a
+$1\times1$ convolution --- necessary because 256 or 512 low-level channels would
+otherwise outweigh the encoder's 256 and impede training --- refines with a few
+$3\times3$ convolutions, and upsamples by four again. The authors also supply the
+clearest statement in the set of why pure dilation does not scale: with ResNet-101, an
+output stride of 16 requires dilating 9 layers, but an output stride of 8 affects 26
+residual blocks, or 78 layers, which is computationally prohibitive. Their remedy is
+atrous separable convolution, factorising each convolution into a depthwise atrous
+spatial convolution and a pointwise combination, applied to both ASPP and the decoder.
+
+\subsection{Techniques Applied: A Synthesis}
+
+Read across the six works, the techniques resolve into five recurring devices.
+
+\emph{Transfer from classification.} Every model begins from an ImageNet-pre-trained
+backbone and fine-tunes all layers. The FCN's authors quantify the dependence: tuning
+the output classifier alone yields barely 70 percent of the performance of full
+fine-tuning, and training from scratch is not viable. SegNet's encoder is chosen to be
+topologically identical to VGG16 precisely so that the pre-trained weights transfer.
+
+\emph{Resolution recovery.} The four distinct answers are learned backwards
+convolution with summed skips (FCN), concatenation of cropped encoder features into a
+symmetric path (U-Net), scattering by memorised pooling indices (SegNet), and
+preventing the loss in the first place through atrous convolution with a terminal
+bilinear step (DeepLab, PSPNet, DeepLabv3+). DeepLabv3+ is the only work to combine
+two of them.
+
+\emph{Multi-scale context.} ASPP and the pyramid pooling module are the same idea
+realised differently: probe one feature layer at several scales in parallel and fuse.
+DeepLab's branches differ in atrous rate, with configurations $r=\{6,12,18,24\}$ for
+ASPP-L; PSPNet's differ in pooling bin size. DeepLab's authors also evaluate the
+alternative of running parallel branches over rescaled inputs with max fusion, and
+reject it as requiring feature responses at all layers for multiple input scales.
+
+\emph{Boundary treatment.} Three strategies appear, and they are not equivalent.
+DeepLab appends a dense CRF as a decoupled post-process. DeepLabv3+ makes boundary
+refinement architectural and internal via the decoder, and measures the result in a
+trimap band around the ground-truth boundary. U-Net makes it a loss-function problem,
+upweighting the thin separations between touching instances.
+
+\emph{Training discipline.} The poly learning-rate policy, with the rate scaled by
+$(1-\mathrm{iter}/\mathrm{max\_iter})^{0.9}$, is adopted by DeepLab, PSPNet and
+DeepLabv3+, and DeepLab measures its contribution in isolation. Class balancing
+divides the set: SegNet uses median frequency balancing, weighting each class by the
+ratio of the median class frequency to its own, while the FCN's authors find balancing
+unnecessary even though roughly three quarters of their pixels are background.
+PSPNet's authors stress that batch-normalisation batch size matters enough that they
+modified Caffe to synchronise statistics across GPUs via OpenMPI to reach a batch of
+16.
+
+\subsection{Results Reported by the Authors}
+
+Table~\ref{tab:results} collects the principal figures with their datasets and
+metrics attached. Four observations follow that the table alone does not make.
+
+First, the progression on PASCAL VOC 2012 test --- 62.2, 79.7, 85.4 and 89.0 percent
+mean IoU for FCN, DeepLab, PSPNet and DeepLabv3+ --- is not a clean measure of
+architectural progress, because the later figures depend on additional data. PSPNet
+reports 82.6 percent when trained on VOC 2012 alone and 85.4 percent with MS-COCO
+pre-training; its authors note pointedly that the VOC-only figure already exceeds
+prior methods that did use COCO. DeepLabv3+ reports 87.8 percent with Xception and
+89.0 percent only with additional JFT-300M pre-training, a corpus that is not public.
+
+Second, the ablations are more informative than the headline numbers, and they are
+remarkably consistent in magnitude. DeepLab's dense CRF yields a 3 to 5 percent
+absolute increase in mean IoU across model variants in the conference-version
+experiments, and 1.34 points on top of the final ResNet-101 configuration, whose val
+ablation runs 68.72, 71.27, 73.28, 74.87, 75.54, 76.35 and 77.69 percent as
+multi-scale input, COCO pre-training, augmentation, LargeFOV, ASPP and the CRF are
+added in turn. PSPNet's pyramid pooling module contributes 4.45 points of mean IoU and
+2.03 of pixel accuracy over a ResNet50 baseline on ADE20K val, taking 37.23/78.01 to
+41.68/80.04, while its auxiliary loss contributes 1.41 and 0.94 points at
+$\alpha=0.4$; average pooling beats max pooling at every setting tested, and the
+four-level pyramid beats single global pooling by 1.61 points. DeepLabv3+'s decoder
+moves 77.21 to 78.85 percent at an evaluation output stride of 16, for about 20\,B
+extra multiply-adds, and improves the trimap band around boundaries by 4.8 points with
+ResNet-101 and 5.4 with Xception, which is the only direct measurement of boundary
+gain in the set.
+
+Third, the efficiency claims cannot be compared, because the six papers report cost in
+units that do not overlap. The FCN reports forward time per image, 210\,ms for
+FCN-VGG16 at $500\times500$ and roughly 175\,ms for FCN-8s at inference, against about
+50\,s for the prior state of the art, a speedup it quantifies as 114-fold for the
+convolutional network alone and 286-fold overall. SegNet reports GPU memory and model
+size: 1052\,MB of inference memory against 1806 to 1993\,MB for the alternatives, and
+117\,MB of model against 539\,MB for FCN and 877\,MB for DeconvNet, while being
+roughly four times slower than DeepLab-LargeFOV in the forward pass at 422.50 against
+110.06\,ms. DeepLab reports 8 frames per second for the dense network plus about 0.5\,s
+of CPU time per image for the CRF, which means the post-process dominates total
+latency. DeepLabv3+ reports multiply-adds, from 52.43\,B to 5247.07\,B across its
+configurations, and notes that separable convolution cuts them by 33 to 41 percent at
+similar accuracy. U-Net reports 10 hours of training on a 6\,GB Titan and under one
+second per $512\times512$ image. PSPNet reports no timing at all.
+
+Fourth, two of the six report results that are not on natural-image scene benchmarks
+at all, and they are the strongest relative margins in the set. U-Net took first place
+on the ISBI 2012 EM challenge ranked by warping error, at 0.000353 against 0.000355 for
+the runner-up, and won the ISBI 2015 cell tracking challenge with mean IoU of 0.9203 on
+PhC-U373 against 0.83 for the second-best method and 0.7756 on DIC-HeLa against 0.46 ---
+a margin of more than 30 points. Its authors are candid that on the EM task they do not
+lead on the other two metrics: their Rand error of 0.0382 trails DIVE-SCI's 0.0305, and
+their pixel error of 0.0611 trails DIVE's 0.0582.
+
+\begin{table*}[!t]
+\renewcommand{\arraystretch}{1.3}
+\caption{Principal Results as Reported by the Authors, With Dataset, Metric and Protocol. Figures Are Not Mutually Comparable; See Section~\ref{subsec:disagree}.}
+\label{tab:results}
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Model} & \textbf{Benchmark and metric} & \textbf{Reported figure} & \textbf{Protocol qualifier}\\
+\hline
+FCN~\cite{long2014fully} & VOC 2011 / 2012 test, mean IU & 62.7\% / 62.2\% & FCN-8s; $\sim$175\,ms inference\\
+ & NYUDv2, mean IU & 34.0\% & FCN-16s, late-fused RGB-HHA\\
+ & SIFT Flow, pixel acc.\ / geom.\ acc. & 85.2\% / 94.3\% & FCN-16s, two-headed model\\
+ & PASCAL-Context 59-class, mean IU & 35.1\% & FCN-8s\\
+\hline
+U-Net~\cite{ronneberger2015unet} & ISBI 2012 EM, warping error & 0.000353 & Rank 1; avg.\ of 7 rotations\\
+ & ISBI 2015 PhC-U373 / DIC-HeLa, IoU & 92.03\% / 77.56\% & Runner-up: 83\% / 46\%\\
+\hline
+SegNet~\cite{badrinarayanan2015segnet} & CamVid, G / C / mIoU / BF & 90.40 / 71.20 / 60.10 / 46.84 & 3433-image training set, 140\,K iter.\\
+ & SUN RGB-D, G / C / mIoU / BF & 72.63 / 44.76 / 31.84 / 12.66 & RGB only; no depth modality\\
+\hline
+DeepLab~\cite{chen2016deeplab} & VOC 2012 test, mIoU & 79.7\% & ResNet-101, COCO, MSC, CRF\\
+ & PASCAL-Context, mIoU & 45.7\% & ResNet-101 with CRF\\
+ & PASCAL-Person-Part, mIoU & 64.94\% & No gain from LargeFOV or ASPP\\
+ & Cityscapes test, mIoU & 70.4\% & Trained on fine set only\\
+\hline
+PSPNet~\cite{zhao2016pspnet} & VOC 2012 test, mIoU & 82.6\% / 85.4\% & VOC only / with COCO pre-training\\
+ & Cityscapes test, mIoU & 78.4\% / 80.2\% & Fine only / fine plus coarse\\
+ & ADE20K challenge, final score & 57.21\% & Rank 1; single model 55.38\%\\
+\hline
+DeepLabv3+~\cite{chen2018encoderdecoder} & VOC 2012 test, mIoU & 87.8\% / 89.0\% & Xception / with JFT-300M\\
+ & Cityscapes test, mIoU & 82.1\% & With coarse train\_extra set\\
+\hline
+\end{tabular}
+\end{table*}
+
+\subsection{Methodological Trends Over Time}
+
+Three trends are visible across the four years the six works span.
+
+The first is a migration of the resolution problem from the decoder to the encoder.
+FCN, U-Net and SegNet all accept a heavily strided encoder and invest in machinery to
+undo it; DeepLab onwards change the encoder so that less is lost. The migration is
+not free, and DeepLabv3+ states its price in layers dilated. That the field then
+returned a decoder to the atrous encoder is the clearest evidence that neither
+intervention alone is sufficient.
+
+The second is the steady displacement of hand-designed components by learned or
+architectural ones. The FCN replaces fixed bilinear upsampling with learned
+deconvolution; SegNet removes the learning again but only by exploiting information
+the encoder already computed; DeepLab's CRF is a classical model bolted to a learned
+one, and DeepLabv3+ replaces that external refinement with an internal decoder.
+Boundary quality thus moves from post-processing to architecture over the period, and
+DeepLab's authors anticipate this move themselves, conjecturing that an
+encoder-decoder structure of the SegNet or U-Net kind could alleviate their boundary
+failures and leaving it as future work.
+
+The third is the growing dominance of data and compute over architecture. Later works
+report their best numbers only with MS-COCO or JFT-300M pre-training, and the
+increments from pre-training --- about 2 points for COCO and 0.8 to 1 for JFT in
+DeepLabv3+'s ablation --- are comparable to or larger than the increments from the
+architectural contributions those same papers are about.
+
+\subsection{Consensus Findings and Unresolved Disagreements}
+\label{subsec:disagree}
+
+Several findings are established across independent groups. Fine-grained encoder
+information must reach the output in some form: every work in the set either
+transfers it explicitly or controls resolution to avoid needing to, and SegNet's
+ablation shows that the fully learned-free alternative, fixed bilinear upsampling,
+is worst on every metric it measures. Multi-scale context aggregation helps, whether
+realised as atrous branches or pooling bins, and both papers that introduce it measure
+a gain of the same order. Supervised pre-training on classification is necessary rather
+than merely convenient. And average pooling beats max fusion for aggregation, a
+conclusion PSPNet reaches by ablation and the FCN reaches independently from the
+gradient-switching difficulties of max fusion in its skip connections.
+
+Three disagreements remain genuinely open, and we state them separately because the
+evidence does not settle them.
+
+The first is comparability, and it is severe in this set. The six papers report on
+different benchmarks with different metrics: SegNet reports a boundary F1 measure that
+no other paper in the set uses, U-Net reports warping and Rand errors that none of the
+scene-parsing papers use, and the FCN reports four variants of accuracy where later
+works report mean IoU alone. Where the benchmarks do coincide, the protocols do not.
+DeepLab's 79.7 percent, PSPNet's 85.4 percent and DeepLabv3+'s 89.0 percent on VOC
+2012 test differ in backbone, pre-training corpus, multi-scale inference and
+flipping, and the papers themselves disclose this in ablation tables that abstracts do
+not carry. A reader comparing abstracts alone would attribute to architecture what is
+substantially attributable to data.
+
+The second concerns the accuracy--efficiency frontier, where there is not even an
+agreed unit. As the preceding subsection sets out, the six papers report
+latency, memory, model size, multiply-adds and training time in non-overlapping
+combinations. SegNet is explicit that its advantage appears only ``when inference time
+memory is constrained but where inference time can be compromised to some extent'',
+which is a frank admission that it loses on the axis its competitors report.
+DeepLabv3+, conversely, deliberately ignores computational cost for its test-set
+configuration. These are different objectives presented in the same field.
+
+The third concerns whether architectural components generalise across domains, and here
+the evidence is directly contradictory. DeepLab's authors observe no improvement
+whatsoever from either LargeFOV or ASPP on PASCAL-Person-Part. DeepLabv3+ finds that
+the image-level features of ASPP help on VOC 2012 but that removing them improves
+Cityscapes. SegNet finds that DeepLab-LargeFOV, the smallest model it benchmarks,
+attains slightly better mIoU than SegNet on SUN RGB-D at 32.08 against 31.84, and uses
+this to argue that heavier parameterisation does not guarantee better performance.
+Multi-scale context modules are therefore not unconditionally beneficial, and no work
+in the set offers a predictive account of when they will help.
+
+\subsection{Gaps and Open Research Questions}
+
+Four gaps follow from the preceding analysis.
+
+\emph{Boundary evaluation.} Mean IoU is a region-overlap measure relatively
+insensitive to boundary error, and two papers in the set say so from opposite
+directions. The FCN's authors show by downsampling and re-upsampling the ground truth
+that mean IoU of 86.1 percent is attainable at a stride of 32 and 92.8 at 16,
+concluding that pixel-perfect prediction is clearly not necessary to score far above
+the state of the art and that mean IoU is therefore not a good measure of fine-scale
+accuracy. SegNet's authors reach the same conclusion and respond by adding a boundary
+F1 measure. That measure was not adopted by the later works, so the field's principal
+metric remains insensitive to exactly the property that DeepLabv3+'s decoder and
+DeepLab's CRF were built to improve.
+
+\emph{Reporting discipline.} The comparability problem is methodological rather than
+technical and is the most tractable of the four. What is missing is a convention
+pinning backbone, pre-training corpus, crop size, schedule length, output stride and
+single- versus multi-scale inference to every reported score. Without it, measured
+progress and measured compute cannot be separated.
+
+\emph{Annotation cost and class imbalance.} The results on SUN RGB-D are poor for every
+architecture benchmarked, and SegNet's authors attribute this to 37 classes of which
+many occupy little area and appear rarely, reporting accuracies of 0.00 for floor mat
+and 0.03 for shower curtain. They conjecture that VGG-derived architectures may be
+unable to absorb the variability of indoor scenes but note this would need more
+controlled datasets to verify. U-Net's weighted loss and SegNet's median frequency
+balancing are two different partial answers, and the FCN's finding that balancing is
+unnecessary on VOC shows the problem is dataset-dependent rather than solved.
+
+\emph{Deployment under constrained memory.} SegNet is the only work in the set that
+treats inference memory as a first-class objective, and the frontier it describes ---
+accuracy against memory, at the cost of latency --- was not pursued by its successors,
+who optimised accuracy and reported cost after the fact. No systematic account exists
+of what accuracy is forfeited at a given memory budget.
+
+\subsection{Suggested Future Directions}
+
+Three directions follow directly. The first is a shared protocol for boundary-aware
+evaluation, since both metrics proposed in this set were abandoned by later work and
+the property they measure is the one several of the architectures exist to improve.
+The second is a predictive account of when multi-scale context modules help, grounded
+in properties of the label distribution and object scale statistics rather than
+benchmark-by-benchmark ablation; the contradictory findings on Person-Part,
+Cityscapes and SUN RGB-D are the natural test set for such an account. The
+third is the disentangling of architecture from pre-training, which would require
+re-running the later models under matched data budgets --- an experiment none of the
+original papers performs, and which the field's reliance on non-public corpora such as
+JFT-300M makes difficult to perform independently.
+
+
 
 
 % An example of a floating figure using the graphicx package.
@@ -510,7 +974,7 @@ Subsubsection text here.
 %\begin{figure}[!t]
 %\centering
 %\includegraphics[width=2.5in]{myfigure}
-% where an .eps filename suffix will be assumed under latex, 
+% where an .eps filename suffix will be assumed under latex,
 % and a .pdf suffix will be assumed for pdflatex; or what has been declared
 % via \DeclareGraphicsExtensions.
 %\caption{Simulation results for the network.}
@@ -521,79 +985,27 @@ Subsubsection text here.
 % results in a large percentage of a column being occupied by floats.
 
 
-% An example of a double column floating figure using two subfigures.
-% (The subfig.sty package must be loaded for this to work.)
-% The subfigure \label commands are set within each subfloat command,
-% and the \label for the overall figure must come after \caption.
-% \hfil is used as a separator to get equal spacing.
-% Watch out that the combined width of all the subfigures on a 
-% line do not exceed the text width or a line break will occur.
-%
-%\begin{figure*}[!t]
-%\centering
-%\subfloat[Case I]{\includegraphics[width=2.5in]{box}%
-%\label{fig_first_case}}
-%\hfil
-%\subfloat[Case II]{\includegraphics[width=2.5in]{box}%
-%\label{fig_second_case}}
-%\caption{Simulation results for the network.}
-%\label{fig_sim}
-%\end{figure*}
-%
-% Note that often IEEE papers with subfigures do not employ subfigure
-% captions (using the optional argument to \subfloat[]), but instead will
-% reference/describe all of them (a), (b), etc., within the main caption.
-% Be aware that for subfig.sty to generate the (a), (b), etc., subfigure
-% labels, the optional argument to \subfloat must be present. If a
-% subcaption is not desired, just leave its contents blank,
-% e.g., \subfloat[].
-
-
-% An example of a floating table. Note that, for IEEE style tables, the
-% \caption command should come BEFORE the table and, given that table
-% captions serve much like titles, are usually capitalized except for words
-% such as a, an, and, as, at, but, by, for, in, nor, of, on, or, the, to
-% and up, which are usually not capitalized unless they are the first or
-% last word of the caption. Table text will default to \footnotesize as
-% the IEEE normally uses this smaller font for tables.
-% The \label must come after \caption as always.
-%
-%\begin{table}[!t]
-%% increase table row spacing, adjust to taste
-%\renewcommand{\arraystretch}{1.3}
-% if using array.sty, it might be a good idea to tweak the value of
-% \extrarowheight as needed to properly center the text within the cells
-%\caption{An Example of a Table}
-%\label{table_example}
-%\centering
-%% Some packages, such as MDW tools, offer better commands for making tables
-%% than the plain LaTeX2e tabular which is used here.
-%\begin{tabular}{|c||c|}
-%\hline
-%One & Two\\
-%\hline
-%Three & Four\\
-%\hline
-%\end{tabular}
-%\end{table}
-
-
-% Note that the IEEE does not put floats in the very first column
-% - or typically anywhere on the first page for that matter. Also,
-% in-text middle ("here") positioning is typically not used, but it
-% is allowed and encouraged for Computer Society conferences (but
-% not Computer Society journals). Most IEEE journals/conferences use
-% top floats exclusively. 
-% Note that, LaTeX2e, unlike IEEE journals/conferences, places
-% footnotes above bottom floats. This can be corrected via the
-% \fnbelowfloat command of the stfloats package.
-
-
 
 
 \section{Conclusion}
-The conclusion goes here.
-
+\label{sec:conclusion}
+Across the four years separating the fully convolutional network from DeepLabv3+,
+semantic segmentation did not refine a single idea so much as relocate one problem.
+The problem is the recovery of spatial resolution that classification backbones are
+built to discard, and the six most-cited models of the field are best read as four
+successive places to solve it: in the decoder by learning to upsample and fusing
+shallow predictions, in a symmetric expansion path that carries encoder features or
+merely their pooling indices, in the encoder itself by controlling the sampling rate
+with atrous convolution, and finally in both at once. The reviewed evidence supports
+that relocation clearly. It supports far less clearly the headline comparisons through
+which the progression is usually narrated, because the later scores rest on
+pre-training corpora and inference protocols that the abstracts do not disclose and
+that the papers' own ablations show to contribute increments comparable to the
+architectures being proposed. Two of these papers also demonstrate, by their own
+measurements, that the field's principal metric is insensitive to the boundary quality
+several of these architectures were built to deliver. The most useful near-term
+contribution to this literature may therefore not be a new architecture but a shared
+discipline for measuring the ones that already exist.
 
 
 
@@ -613,21 +1025,12 @@ The conclusion goes here.
 %
 
 
-\appendices
-\section{Proof of the First Zonklar Equation}
-Appendix one text goes here.
-
-% you can choose not to have a title for an appendix
-% if you want by leaving the argument blank
-\section{}
-Appendix two text goes here.
-
-
 % use section* for acknowledgment
 \section*{Acknowledgment}
 
 
-The authors would like to thank...
+The author thanks the maintainers of the arXiv open-access archive, without which
+a review of this kind would not be practical.
 
 
 % Can use something like this to put references on a page
@@ -660,16 +1063,41 @@ The authors would like to thank...
 % <OR> manually copy in the resultant .bbl file
 % set second argument of \begin to the number of references
 % (used to reserve space for the reference number labels box)
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
-\bibitem{IEEEhowto:kopka}
-H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
-  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
+\bibitem{long2014fully}
+J.~Long, E.~Shelhamer, and T.~Darrell, ``Fully convolutional networks for
+  semantic segmentation,'' \emph{arXiv preprint arXiv:1411.4038}, 2014.
+
+\bibitem{ronneberger2015unet}
+O.~Ronneberger, P.~Fischer, and T.~Brox, ``U-Net: Convolutional networks for
+  biomedical image segmentation,'' \emph{arXiv preprint arXiv:1505.04597},
+  2015.
+
+\bibitem{badrinarayanan2015segnet}
+V.~Badrinarayanan, A.~Kendall, and R.~Cipolla, ``SegNet: A deep convolutional
+  encoder-decoder architecture for image segmentation,'' \emph{arXiv preprint
+  arXiv:1511.00561}, 2015.
+
+\bibitem{chen2016deeplab}
+L.-C. Chen, G.~Papandreou, I.~Kokkinos, K.~Murphy, and A.~L. Yuille,
+  ``DeepLab: Semantic image segmentation with deep convolutional nets, atrous
+  convolution, and fully connected CRFs,'' \emph{arXiv preprint
+  arXiv:1606.00915}, 2016.
+
+\bibitem{zhao2016pspnet}
+H.~Zhao, J.~Shi, X.~Qi, X.~Wang, and J.~Jia, ``Pyramid scene parsing
+  network,'' \emph{arXiv preprint arXiv:1612.01105}, 2016.
+
+\bibitem{chen2018encoderdecoder}
+L.-C. Chen, Y.~Zhu, G.~Papandreou, F.~Schroff, and H.~Adam,
+  ``Encoder-decoder with atrous separable convolution for semantic image
+  segmentation,'' \emph{arXiv preprint arXiv:1802.02611}, 2018.
 
 \end{thebibliography}
 
 % biography section
-% 
+%
 % If you have an EPS/PDF photo (graphicx package needed) extra braces are
 % needed around the contents of the optional argument to biography to prevent
 % the LaTeX parser from getting confused when it sees the complicated
@@ -679,20 +1107,7 @@ H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
 %\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{mshell}}]{Michael Shell}
 % or if you just want to reserve a space for a photo:
 
-\begin{IEEEbiography}{Michael Shell}
-Biography text here.
-\end{IEEEbiography}
-
-% if you will not have a photo at all:
-\begin{IEEEbiographynophoto}{John Doe}
-Biography text here.
-\end{IEEEbiographynophoto}
-
-% insert where needed to balance the two columns on the last page with
-% biographies
-%\newpage
-
-\begin{IEEEbiographynophoto}{Jane Doe}
+\begin{IEEEbiographynophoto}{Oscar A. Mart\'{i}nez S.}
 Biography text here.
 \end{IEEEbiographynophoto}
 
