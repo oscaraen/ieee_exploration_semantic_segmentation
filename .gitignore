@@ -1,0 +1,19 @@
+# Secrets / local environment
+.env
+.env.*
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.synctex.gz
+*.toc
+
+# Compiled output (the .tex is the source of truth in this repo)
+*.pdf
