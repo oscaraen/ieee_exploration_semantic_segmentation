@@ -357,7 +357,7 @@
 % not capitalized unless they are the first or last word of the title.
 % Linebreaks \\ can be used within to get better formatting as desired.
 % Do not put math or special symbols in the title.
-\title{A Review of Semantic Segmentation Models:\\ From Fully Convolutional Networks to\\ Promptable Foundation Models}
+\title{Bare Demo of IEEEtran.cls\\ for IEEE Journals}
 %
 %
 % author names and IEEE memberships
@@ -369,9 +369,14 @@
 % was not built to handle multiple paragraphs
 %
 
-\author{Oscar~A.~Mart\'{i}nez~S.% <-this % stops a space
-\thanks{Author affiliation goes here. E-mail contact to be completed by the author.}% <-this % stops a space
-\thanks{Manuscript prepared October 15, 2026.}}
+\author{Michael~Shell,~\IEEEmembership{Member,~IEEE,}
+        John~Doe,~\IEEEmembership{Fellow,~OSA,}
+        and~Jane~Doe,~\IEEEmembership{Life~Fellow,~IEEE}% <-this % stops a space
+\thanks{M. Shell was with the Department
+of Electrical and Computer Engineering, Georgia Institute of Technology, Atlanta,
+GA, 30332 USA e-mail: (see http://www.michaelshell.org/contact.html).}% <-this % stops a space
+\thanks{J. Doe and J. Doe are with Anonymous University.}% <-this % stops a space
+\thanks{Manuscript received April 19, 2005; revised August 26, 2015.}}
 
 % note the % following the last \IEEEmembership and also \thanks - 
 % these prevent an unwanted space from occurring between the last author name
@@ -395,7 +400,7 @@
 
 % The paper headers
 \markboth{Journal of \LaTeX\ Class Files,~Vol.~14, No.~8, August~2015}%
-{Mart\'{i}nez: A Review of Semantic Segmentation Models}
+{Shell \MakeLowercase{\textit{et al.}}: Bare Demo of IEEEtran.cls for IEEE Journals}
 % The only time the second header will appear is for the odd numbered pages
 % after the title page when using the twoside option.
 % 
@@ -427,31 +432,12 @@
 % As a general rule, do not put math, special symbols or citations
 % in the abstract or keywords.
 \begin{abstract}
-Semantic segmentation, the assignment of a category label to every pixel of an
-image, has progressed in under a decade from hand-tuned convolutional pipelines
-to promptable foundation models trained on billions of masks. This paper reviews
-five influential and highly cited segmentation models that mark the successive
-turning points of that trajectory: the fully convolutional network, DeepLabv3+,
-SegFormer, Mask2Former and the Segment Anything Model. For each model we identify
-the architectural commitment it introduced, the evidence its authors reported, and
-the assumptions that evidence rests on. Rather than tabulating benchmark scores in
-isolation, we organise the literature into four thematic clusters---receptive-field
-engineering, hierarchical attention, mask classification, and promptable
-pre-training---and trace the methodological shift from per-pixel classification
-towards set prediction and task-conditioned universal architectures. We find broad
-consensus that mask classification subsumes per-pixel classification and that
-large-scale pre-training dominates architectural refinement, but persistent
-disagreement over how accuracy should be weighed against inference cost, and over
-whether headline numbers obtained under differing backbones, crop sizes and
-multi-scale inference protocols are comparable at all. We close by identifying open
-questions concerning evaluation hygiene, boundary quality, label efficiency and
-deployment under constrained compute.
+The abstract goes here.
 \end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
 \begin{IEEEkeywords}
-Semantic segmentation, scene understanding, convolutional neural networks, vision
-transformers, mask classification, foundation models, literature review.
+IEEE, IEEEtran, journal, \LaTeX, paper, template.
 \end{IEEEkeywords}
 
 
@@ -487,313 +473,25 @@ transformers, mask classification, foundation models, literature review.
 % 
 % Here we have the typical use of a "T" for an initial drop letter
 % and "HIS" in caps to complete the first word.
-\IEEEPARstart{S}{emantic} segmentation assigns a category label to every pixel in
-an image, producing a dense, structured description of a scene rather than a single
-image-level decision. It underpins autonomous driving, medical image analysis,
-remote sensing, robotic manipulation and photo editing, and it is the canonical
-dense-prediction task against which advances in visual representation learning are
-measured. Because the output lives at the resolution of the input, segmentation
-models are simultaneously constrained by two competing demands: they must capture
-long-range semantic context in order to decide \emph{what} a region is, and they
-must preserve fine spatial detail in order to decide precisely \emph{where} it
-begins and ends. Almost every architectural idea in the field can be read as a
-particular compromise between those two demands.
+\IEEEPARstart{T}{his} demo file is intended to serve as a ``starter file''
+for IEEE journal papers produced under \LaTeX\ using
+IEEEtran.cls version 1.8b and later.
+% You must have at least 2 lines in the paragraph with the drop letter
+% (should never be an issue)
+I wish you the best of success.
 
-The modern era of the task begins with the fully convolutional network (FCN) of
-Long \emph{et al.}~\cite{long2014fully}, which reframed segmentation as per-pixel
-classification and showed that a classification backbone could be trained
-end-to-end, pixels-to-pixels, by replacing its fully connected layers with
-convolutions. Subsequent work largely accepted that framing and attacked its
-weaknesses. DeepLabv3+~\cite{chen2018encoderdecoder} addressed the loss of spatial
-detail caused by repeated striding, combining atrous spatial pyramid pooling with a
-decoder and depthwise separable convolutions. SegFormer~\cite{xie2021segformer}
-replaced the convolutional backbone with a hierarchical, positional-encoding-free
-transformer and a deliberately minimal all-MLP decoder. Mask2Former
-\cite{cheng2021maskedattention} abandoned per-pixel classification altogether in
-favour of mask classification, predicting a set of binary masks with associated
-labels and thereby unifying semantic, instance and panoptic segmentation under one
-architecture. OneFormer~\cite{jain2022oneformer} pushed that unification further
-still, training a single model once and conditioning it on a task token at
-inference. Finally, the Segment Anything Model (SAM)~\cite{kirillov2023segment}
-changed the object of study: instead of training a model for a fixed label set, it
-pre-trains a promptable model on over one billion masks and transfers zero-shot to
-new distributions.
+\hfill mds
+ 
+\hfill August 26, 2015
 
-This paper reviews that trajectory through the lens of five models that define its
-turning points, together with the FCN baseline from which they all descend. Our aim
-is synthesis rather than enumeration. We ask what architectural commitment each
-model made, what evidence its authors offered, what that evidence assumes, and
-where the reported results genuinely agree or only appear to. The remainder of the
-paper is organised as follows. Section~\ref{sec:sota} presents the state of the
-art: it states the scope and inclusion criteria of the review, groups prior work
-into thematic clusters, traces methodological trends over time, separates consensus
-findings from unresolved disagreements, and identifies gaps and future directions.
-Section~\ref{sec:conclusion} concludes.
+\subsection{Subsection Heading Here}
+Subsection text here.
 
-\section{State of the Art}
-\label{sec:sota}
+% needed in second column of first page if using \IEEEpubid
+%\IEEEpubidadjcol
 
-\subsection{Scope and Inclusion Criteria}
-
-This review covers learning-based models for dense semantic labelling of natural
-RGB images. A work was included if it satisfied three criteria. First, it had to
-introduce a general-purpose segmentation \emph{architecture or pre-training
-paradigm}, not an application of an existing one to a particular domain; this
-excludes the large body of work applying SegFormer or SAM to agriculture, remote
-sensing, histopathology or industrial inspection, valuable though it is. Second, it
-had to report results on at least one of the three standard public benchmarks ---
-PASCAL VOC 2012, Cityscapes or ADE20K --- so that claims could be placed on a
-common axis. Third, it had to have demonstrably shifted subsequent practice, judged
-by whether later architectures in the set treat it as the baseline to beat.
-
-Applying these criteria yields six works, listed in Table~\ref{tab:models}: the FCN
-as a historical anchor, and five models that we treat as the current reference
-points of the field. Three boundaries of this scope should be stated plainly.
-Instance and panoptic segmentation enter the discussion only where a model claims
-to unify them with semantic segmentation, as Mask2Former and OneFormer do. Video,
-3D and medical-specific segmentation are out of scope. And because the field
-publishes predominantly through arXiv preprints and conference proceedings, the
-evidence reviewed here is drawn from author-reported results, which have not been
-independently re-run for this review --- a limitation we return to in
-Section~\ref{subsec:disagree}.
-
-\begin{table*}[!t]
-\renewcommand{\arraystretch}{1.3}
-\caption{The Five Reviewed Models and Their Historical Anchor. Results Are as Reported by the Original Authors; See Section~\ref{subsec:disagree} on Comparability.}
-\label{tab:models}
-\centering
-\begin{tabular}{|l|c|l|l|}
-\hline
-\textbf{Model} & \textbf{Year} & \textbf{Defining commitment} & \textbf{Headline result reported by authors}\\
-\hline
-FCN~\cite{long2014fully} & 2014 & Per-pixel classification, trained end-to-end & First end-to-end pixels-to-pixels segmentation network\\
-\hline
-DeepLabv3+~\cite{chen2018encoderdecoder} & 2018 & Atrous pyramid pooling plus a decoder & 89.0\% on PASCAL VOC 2012 test; 82.1\% on Cityscapes test\\
-\hline
-SegFormer~\cite{xie2021segformer} & 2021 & Hierarchical transformer, all-MLP decoder & B5: 84.0\% mIoU Cityscapes val; B0: 71.9\% mIoU at 48 FPS\\
-\hline
-Mask2Former~\cite{cheng2021maskedattention} & 2021 & Mask classification with masked attention & 57.7 mIoU ADE20K; 57.8 PQ and 50.1 AP on COCO\\
-\hline
-OneFormer~\cite{jain2022oneformer} & 2022 & Task-conditioned joint training, one model & Beats per-task Mask2Former using $\sim$3$\times$ fewer training resources\\
-\hline
-SAM~\cite{kirillov2023segment} & 2023 & Promptable pre-training on 1B masks & Zero-shot transfer often competitive with supervised baselines\\
-\hline
-\end{tabular}
-\end{table*}
-
-\subsection{Thematic Clusters in Prior Work}
-
-The six works fall into four clusters, each defined by the mechanism it uses to
-reconcile semantic context with spatial precision.
-
-\subsubsection{Receptive-Field Engineering}
-The first cluster accepts the FCN's per-pixel formulation and enlarges the
-effective receptive field without destroying resolution. DeepLabv3+ is its mature
-representative. Its authors frame the problem explicitly as a choice between two
-families: spatial pyramid pooling, which encodes multi-scale context by probing
-features at several dilation rates, and encoder--decoder structures, which recover
-sharp boundaries by gradually restoring spatial information
-\cite{chen2018encoderdecoder}. Their contribution is to refuse the choice and
-combine both, using DeepLabv3 as the encoder and adding a simple decoder. The paper
-also makes an argument that recurs throughout the field: extracting dense features
-purely by dilation is computationally prohibitive, since obtaining an output stride
-of 8 with ResNet-101 requires dilating 78 layers. Atrous separable convolution is
-introduced precisely to make this affordable.
-
-\subsubsection{Hierarchical Attention}
-The second cluster replaces the convolutional backbone with a transformer while
-retaining per-pixel classification. SegFormer is the clearest statement of this
-position, and it is as much a critique of earlier vision transformers as an
-architecture. Its authors identify two concrete defects in the ViT-based SETR
-approach: ViT emits single-scale, low-resolution features, and its cost grows
-sharply with image size \cite{xie2021segformer}. SegFormer answers with a
-hierarchical encoder that emits multi-scale features and, notably, drops positional
-encoding entirely --- a choice motivated not by elegance but by a specific failure
-mode, namely the accuracy loss incurred when positional codes are interpolated for
-test resolutions that differ from training. The second half of the argument is
-about the decoder. Observing that attention in lower layers stays local while
-attention in the highest layers is strongly non-local, the authors argue that
-simply aggregating across layers with an MLP already combines local and global
-evidence, making heavy decoders unnecessary.
-
-\subsubsection{Mask Classification and Universal Architectures}
-The third cluster rejects per-pixel classification. Mask2Former's framing is that
-semantic, instance and panoptic segmentation differ only in what semantics are used
-to group pixels, so specialising an architecture per task duplicates research and
-hardware effort \cite{cheng2021maskedattention}. The technical core is masked
-attention, which constrains cross-attention to the regions of the currently
-predicted mask instead of attending to the whole image; the authors report that
-this yields both faster convergence and higher accuracy. Three further changes are
-reported as necessary rather than incidental: multi-scale high-resolution features
-to recover small objects, a reordering of self- and cross-attention with learnable
-queries, and computing the mask loss on a few randomly sampled points, which the
-authors state saves $3\times$ training memory with no loss of performance.
-
-This last point deserves emphasis because it is an accessibility claim, not only an
-efficiency one. Mask2Former's authors note that its predecessor MaskFormer required
-300 epochs to reach 40.1 AP and could fit only a single image on a 32\,GB GPU,
-whereas the specialised Swin-HTC++ reached better accuracy in 72 epochs. The
-argument is that universal architectures had been held back as much by training
-cost as by accuracy.
-
-OneFormer extends the cluster by attacking a residual inconsistency. Mask2Former is
-universal in architecture but not in training: to obtain its best numbers it is
-trained separately on each task, which on ADE20K means three runs of 160k
-iterations and three sets of weights to store and serve
-\cite{jain2022oneformer}. OneFormer's authors hypothesise that joint training fails
-without explicit task guidance, and introduce a task token of the form ``the task is
-\{task\}'' to condition the model, together with a query--text contrastive loss to
-sharpen inter-task and inter-class distinctions. Because panoptic annotations
-contain both semantic and instance information, semantic and instance labels are
-derived from panoptic ground truth, so only panoptic data is needed at training
-time.
-
-\subsubsection{Promptable Pre-Training}
-The fourth cluster changes the task definition rather than the architecture. SAM
-proposes promptable segmentation, in which the model must return a valid mask for
-any prompt --- a point, a box, a coarse mask or text \cite{kirillov2023segment}.
-Ambiguity is handled by design: a point on a shirt might indicate the shirt or the
-person, so the model predicts several masks and is required only to be right about
-one. Architecturally the design is deliberately plain --- a heavy image encoder, a
-light prompt encoder, and a mask decoder that runs in roughly 50\,ms in a browser
-once the image embedding is cached. The substance of the contribution is the data
-engine: because no web-scale mask corpus existed, the authors iterated between
-using the model to assist annotation and using the resulting annotations to improve
-the model, producing SA-1B with over one billion masks on 11 million images.
-
-\subsection{Methodological Trends Over Time}
-
-Read chronologically, four trends are visible across these clusters.
-
-The first is the migration of the inductive bias from the operator to the data.
-DeepLabv3+ encodes multi-scale reasoning structurally, in the dilation rates of its
-pyramid. SegFormer moves that burden into the attention mechanism. SAM removes the
-architectural commitment almost entirely and relies on the scale and diversity of
-SA-1B. The architectures do not become more sophisticated over time; if anything
-they become simpler, and the complexity migrates into training data and objectives.
-
-The second is the displacement of per-pixel classification by set prediction. The
-FCN formulation held for roughly seven years. Its replacement by mask
-classification was decisive once Mask2Former demonstrated that a single mask-based
-architecture could match or beat specialised models on all three tasks.
-
-The third is the steady relocation of the unit of unification: first across tasks
-with one architecture (Mask2Former), then across tasks with one trained model
-(OneFormer), then across data distributions with one pre-trained model (SAM). Each
-step widens the claim of generality and, correspondingly, weakens the guarantee of
-optimality on any particular benchmark.
-
-The fourth is the rise of efficiency as a reported quantity rather than an
-afterthought. SegFormer reports parameters, FLOPs and frame rate alongside
-accuracy, pointing out that B5 is $4\times$ smaller than SETR while more accurate,
-and that B0 reaches 71.9\% mIoU at 48 FPS on Cityscapes. OneFormer frames its
-contribution partly in terms of a $3\times$ reduction in training time and storage.
-This reflects a field increasingly conscious that benchmark gains purchased with
-unbounded compute are not deployable gains.
-
-\subsection{Consensus Findings and Unresolved Disagreements}
-\label{subsec:disagree}
-
-Several findings are now well established across independent groups. Mask
-classification generalises per-pixel classification: a single mask-based
-architecture matches or exceeds specialised per-task architectures on semantic,
-instance and panoptic segmentation \cite{cheng2021maskedattention,jain2022oneformer}.
-Multi-scale features are necessary for dense prediction regardless of whether the
-backbone is convolutional or attention-based; every model reviewed here either
-builds them in or is criticised by its successors for failing to
-\cite{chen2018encoderdecoder,xie2021segformer}. Decoder complexity is largely
-unnecessary once the encoder produces multi-scale features, a conclusion SegFormer
-argues directly and Mask2Former corroborates from the opposite direction. And
-large-scale pre-training transfers: SAM's zero-shot performance is reported as
-frequently competitive with, and sometimes superior to, fully supervised results
-\cite{kirillov2023segment}.
-
-Three disagreements remain genuinely open, and we state them separately from the
-findings above because the evidence does not settle them.
-
-The first is comparability. Headline numbers in this literature are reported under
-different backbones, crop sizes, iteration budgets, query counts and inference
-protocols. OneFormer's own comparison tables make this visible: entries differ in
-parameters, FLOPs, crop size and training iterations, and report single-scale and
-multi-scale mIoU in separate columns \cite{jain2022oneformer}. Mask2Former's
-reported 57.7 mIoU on ADE20K and the 54.5 mIoU attributed to a Mask2Former
-configuration in OneFormer's table are not in conflict --- they describe different
-settings --- but a reader comparing abstracts alone would conclude otherwise. The
-field has no agreed protocol for reporting these axes together, and claims of
-state-of-the-art status should be treated as conditional on the configuration until
-verified.
-
-The second concerns the accuracy--efficiency frontier. There is no consensus on how
-to weigh the two. SegFormer's position is that a model is only state-of-the-art if
-it is simultaneously efficient; Mask2Former and OneFormer optimise primarily for
-accuracy and treat training cost, not inference cost, as the efficiency axis worth
-reporting. These are different objectives presented in the same units, and the
-literature does not adjudicate between them.
-
-The third concerns the limits of foundation models. SAM's authors are explicit that
-the model is not uniformly superior: it can miss fine structures, sometimes
-hallucinates small disconnected components, and produces less crisp boundaries than
-more computationally intensive methods that zoom in. They further expect dedicated
-interactive segmentation methods to outperform SAM when many prompt points are
-available, noting that SAM is designed for generality and breadth rather than high
-interactive IoU \cite{kirillov2023segment}. Whether promptable pre-training will
-eventually dominate task-specific training on accuracy, or settle into a
-complementary role as an initialisation and annotation tool, is not yet answerable
-from the published evidence.
-
-\subsection{Gaps and Open Research Questions}
-
-Four gaps follow from the preceding analysis.
-
-\emph{Evaluation hygiene.} The comparability problem is methodological, not
-technical, and it is the most tractable. The field lacks a standard reporting
-convention that pins backbone, pre-training corpus, crop size, schedule length and
-single- versus multi-scale inference to every reported score. Without it, measured
-progress and measured compute cannot be separated.
-
-\emph{Boundary quality.} Every model reviewed here reports mIoU, a region-overlap
-measure that is relatively insensitive to boundary error. Yet boundary fidelity is
-exactly what DeepLabv3+'s decoder was designed to improve, and exactly where SAM's
-authors concede weakness. A metric the community agrees on would make an
-acknowledged weakness measurable.
-
-\emph{Label efficiency.} SAM demonstrates that a data engine can produce masks at
-scale, but SA-1B's masks are class-agnostic. Semantic segmentation needs category
-labels, and how to obtain them at comparable scale without proportional annotation
-cost is unresolved.
-
-\emph{Deployment under constrained compute.} The accuracy frontier is occupied by
-models whose cost excludes most embedded and real-time applications. SegFormer-B0
-shows the frontier can be approached cheaply, but no systematic account exists of
-what is lost in doing so.
-
-\subsection{Suggested Future Directions}
-
-We suggest four directions, ordered by how directly the reviewed evidence supports
-them.
-
-First, a standardised evaluation protocol and a shared reporting template. This
-requires no new modelling and would resolve the comparability disagreement
-described above; it is the highest-value, lowest-risk contribution available.
-
-Second, distillation of promptable foundation models into task-specific, deployable
-students. SAM's design already separates an expensive image encoder from a
-lightweight decoder, which makes the encoder the natural target for compression;
-early work in this direction is appearing, and the architectural separation
-suggests it should succeed.
-
-Third, closing the loop between promptable pre-training and universal
-architectures. SAM supplies class-agnostic masks at scale; OneFormer supplies
-task-conditioned semantic reasoning. Their combination --- using SAM-scale
-pre-training to initialise a task-conditioned universal model --- is suggested by
-the complementarity of the two, though we note this is a tentative inference from
-the design of the two systems rather than a conclusion supported by published
-results.
-
-Fourth, boundary-aware objectives and metrics. Given that boundary error is both an
-acknowledged weakness and an unmeasured one, progress here would be visible
-immediately once the metric exists.
-
+\subsubsection{Subsubsection Heading Here}
+Subsubsection text here.
 
 
 % An example of a floating figure using the graphicx package.
@@ -894,17 +592,8 @@ immediately once the metric exists.
 
 
 \section{Conclusion}
-\label{sec:conclusion}
-Across the decade separating the fully convolutional network from the Segment
-Anything Model, semantic segmentation has not so much refined one idea as replaced
-its foundations twice: first when mask classification displaced per-pixel
-classification, and again when large-scale promptable pre-training displaced
-architectural specialisation as the main source of generalisation. The reviewed
-evidence supports both shifts clearly. It supports far less clearly the headline
-comparisons through which they are usually narrated, because reported scores depend
-on backbone, schedule and inference protocol in ways that abstracts rarely disclose.
-The most useful near-term contribution to this literature may therefore not be a new
-architecture but a shared discipline for measuring the ones that exist.
+The conclusion goes here.
+
 
 
 
@@ -924,12 +613,21 @@ architecture but a shared discipline for measuring the ones that exist.
 %
 
 
+\appendices
+\section{Proof of the First Zonklar Equation}
+Appendix one text goes here.
+
+% you can choose not to have a title for an appendix
+% if you want by leaving the argument blank
+\section{}
+Appendix two text goes here.
+
+
 % use section* for acknowledgment
 \section*{Acknowledgment}
 
 
-The author thanks the maintainers of the arXiv open-access archive, without which
-a review of this kind would not be practical.
+The authors would like to thank...
 
 
 % Can use something like this to put references on a page
@@ -962,36 +660,11 @@ a review of this kind would not be practical.
 % <OR> manually copy in the resultant .bbl file
 % set second argument of \begin to the number of references
 % (used to reserve space for the reference number labels box)
-\begin{thebibliography}{10}
+\begin{thebibliography}{1}
 
-\bibitem{long2014fully}
-J.~Long, E.~Shelhamer, and T.~Darrell, ``Fully convolutional networks for
-  semantic segmentation,'' \emph{arXiv preprint arXiv:1411.4038}, 2014.
-
-\bibitem{chen2018encoderdecoder}
-L.-C. Chen, Y.~Zhu, G.~Papandreou, F.~Schroff, and H.~Adam,
-  ``Encoder-decoder with atrous separable convolution for semantic image
-  segmentation,'' \emph{arXiv preprint arXiv:1802.02611}, 2018.
-
-\bibitem{xie2021segformer}
-E.~Xie, W.~Wang, Z.~Yu, A.~Anandkumar, J.~M. Alvarez, and P.~Luo,
-  ``SegFormer: Simple and efficient design for semantic segmentation with
-  transformers,'' \emph{arXiv preprint arXiv:2105.15203}, 2021.
-
-\bibitem{cheng2021maskedattention}
-B.~Cheng, I.~Misra, A.~G. Schwing, A.~Kirillov, and R.~Girdhar,
-  ``Masked-attention mask transformer for universal image segmentation,''
-  \emph{arXiv preprint arXiv:2112.01527}, 2021.
-
-\bibitem{jain2022oneformer}
-J.~Jain, J.~Li, M.~Chiu, A.~Hassani, N.~Orlov, and H.~Shi, ``OneFormer: One
-  transformer to rule universal image segmentation,'' \emph{arXiv preprint
-  arXiv:2211.06220}, 2022.
-
-\bibitem{kirillov2023segment}
-A.~Kirillov, E.~Mintun, N.~Ravi, H.~Mao, C.~Rolland, L.~Gustafson, T.~Xiao,
-  S.~Whitehead, A.~C. Berg, W.-Y. Lo, P.~Doll\'{a}r, and R.~Girshick, ``Segment
-  anything,'' \emph{arXiv preprint arXiv:2304.02643}, 2023.
+\bibitem{IEEEhowto:kopka}
+H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
+  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
 
 \end{thebibliography}
 
@@ -1006,7 +679,20 @@ A.~Kirillov, E.~Mintun, N.~Ravi, H.~Mao, C.~Rolland, L.~Gustafson, T.~Xiao,
 %\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{mshell}}]{Michael Shell}
 % or if you just want to reserve a space for a photo:
 
-\begin{IEEEbiographynophoto}{Oscar A. Mart\'{i}nez S.}
+\begin{IEEEbiography}{Michael Shell}
+Biography text here.
+\end{IEEEbiography}
+
+% if you will not have a photo at all:
+\begin{IEEEbiographynophoto}{John Doe}
+Biography text here.
+\end{IEEEbiographynophoto}
+
+% insert where needed to balance the two columns on the last page with
+% biographies
+%\newpage
+
+\begin{IEEEbiographynophoto}{Jane Doe}
 Biography text here.
 \end{IEEEbiographynophoto}
 
